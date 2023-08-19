@@ -32707,10 +32707,3 @@ if indices:
 else:
     print("Phone not found.")
 
-# Display all close matches
-if search_type == "name" and name_matches:
-    print("\nClose matches for name:")
-    print("\n".join(name_matches))
-elif search_type == "brand" and brand_matches:
-    print("\nClose matches for brand:")
-    print("\n".join(brand_matches))
