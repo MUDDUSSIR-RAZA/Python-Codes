@@ -32619,91 +32619,103 @@ phones = [
 ]
 
 
-import difflib
-
-
-
-def binary_search_by_name(arr, target_name):
-    left, right = 0, len(arr) - 1
-    
-    while left <= right:
-        mid = (left + right) // 2
-        mid_name = arr[mid]["Name"]
-        
-        if mid_name == target_name:
-            return mid
-        elif mid_name < target_name:
-            left = mid + 1
-        else:
-            right = mid - 1
-    
-    return -1
-
-def binary_search_by_brand(arr, target_brand):
-    left, right = 0, len(arr) - 1
-    
-    while left <= right:
-        mid = (left + right) // 2
-        mid_brand = arr[mid]["Brand"]
-        
-        if mid_brand == target_brand:
-            return mid
-        elif mid_brand < target_brand:
-            left = mid + 1
-        else:
-            right = mid - 1
-    
-    return -1
-
-
 # Sort the phones by name
 phones.sort(key=lambda x: x["Name"])
 
-# User input for searching by name or brand
-search_type = input("Search by Name or Brand? ").lower()
-target = input("Enter the name or brand to search for: ")
+# Analyze the data to determine filtering ranges
+price_range = (min(float(phone["Price"]) for phone in phones), max(float(phone["Price"]) for phone in phones))
+ram_range = (min(float(phone["RAM (MB)"]) for phone in phones), max(float(phone["RAM (MB)"]) for phone in phones))
+storage_range = (min(float(phone["Internal storage (GB)"]) for phone in phones), max(float(phone["Internal storage (GB)"]) for phone in phones))
+rear_camera_range = (min(float(phone["Rear camera"]) for phone in phones), max(float(phone["Rear camera"]) for phone in phones))
+front_camera_range = (min(float(phone["Front camera"]) for phone in phones), max(float(phone["Front camera"]) for phone in phones))
+processor_range = (min(float(phone["Processor"]) for phone in phones), max(float(phone["Processor"]) for phone in phones))
+battery_capacity_range = (min(float(phone["Battery capacity (mAh)"]) for phone in phones), max(float(phone["Battery capacity (mAh)"]) for phone in phones))
 
-# Find close matches for the target using difflib
-name_matches = difflib.get_close_matches(target, [phone["Name"] for phone in phones])
-brand_matches = difflib.get_close_matches(target, [phone["Brand"] for phone in phones])
-
-if search_type == "name":
-    indices = [i for i, phone in enumerate(phones) if difflib.SequenceMatcher(None, target, phone["Name"]).ratio() > 0.6]
-    if not indices and name_matches:
-        print("No exact match found. Did you mean:")
-        print("\n".join(name_matches))
-elif search_type == "brand":
-    indices = [i for i, phone in enumerate(phones) if difflib.SequenceMatcher(None, target, phone["Brand"]).ratio() > 0.6]
-    if not indices and brand_matches:
-        print("No exact match found. Did you mean:")
-        print("\n".join(brand_matches))
-else:
-    print("Invalid search type. Please enter 'Name' or 'Brand'.")
-
-
-# Display matching models
-if indices:
+while True:
+    print("=" * 20)
     print("\n")
-    print("=" * 50)
-    print("Matching Models:")
-    matching_models = [phones[index]["Model"] for index in indices]
-    print("\n".join(matching_models))
-    print("=" * 50)
-    print("\n")
-    print("=" * 50)
-    selected_model = input("Enter the model name you want to show details for: ")
-    print("=" * 50)
-    selected_index = next((index for index, phone in enumerate(phones) if phone["Model"].lower() == selected_model), None)
-    if selected_index is not None:
-        print("\n")
-        print("=" * 20)
-        print("Phone details:")
-        print("=" * 20)
-        print("\n")
-        for key, value in phones[selected_index].items():
-            print(f"{key}: {value}")
+    # User input for searching by name, brand, or filter by a specific condition
+    action = input("Do you want to search by Brand or Filter? (Enter 'exit' to end): ").lower()
+
+    if action == 'exit':
+        break  # Exit the loop if the user inputs 'exit'
+
+    if action == "search":
+        target_brand = input("Enter the brand name to search for: ")
+        indices = [i for i, phone in enumerate(phones) if target_brand.lower() in phone["Brand"].lower()]
+
+        if indices:
+            print("\n")
+            print("=" * 50)
+            print("Matching Models:")
+            matching_models = [phones[index]["Model"] for index in indices]
+            print("\n".join(matching_models))
+            print("=" * 50)
+            print("\n")
+            selected_model = input("Enter the model name you want to show details for (or 'exit' to end): ")
+            print("=" * 50)
+            if selected_model == 'exit':
+                break  # Exit the loop if the user inputs 'exit'
+            selected_index = next((index for index, phone in enumerate(phones) if phone["Model"].lower() == selected_model.lower()), None)
+            if selected_index is not None:
+                print("\n")
+                print("=" * 20)
+                print("Phone details:")
+                print("=" * 20)
+                print("\n")
+                for key, value in phones[selected_index].items():
+                    print(f"{key}: {value}")
+            else:
+                print("=" * 20)
+                print("Selected model not found.")
+        else:
+            print("=" * 20)
+            print("Brand not found.")
+    elif action == "filter":
+       
+        max_price = float(input(f"Enter the maximum price (between {price_range[0]} and {price_range[1]}): "))
+        min_ram = float(input(f"Enter the minimum RAM (in MB, between {ram_range[0]} and {ram_range[1]}): "))
+        min_internal_storage = float(input(f"Enter the minimum internal storage (in GB, between {storage_range[0]} and {storage_range[1]}): "))
+        min_rear_camera = float(input(f"Enter the minimum rear camera resolution (in MP, between {rear_camera_range[0]} and {rear_camera_range[1]}): "))
+        min_front_camera = float(input(f"Enter the minimum front camera resolution (in MP, between {front_camera_range[0]} and {front_camera_range[1]}): "))
+        min_processor_cores = float(input(f"Enter the minimum number of processor cores (between {processor_range[0]} and {processor_range[1]}): "))
+        min_battery_capacity = float(input(f"Enter the minimum battery capacity (in mAh, between {battery_capacity_range[0]} and {battery_capacity_range[1]}): "))
+
+        filtered_phones = [phone for phone in phones if
+                           max_price >= float(phone["Price"]) >= 0 and
+                           min_ram <= float(phone["RAM (MB)"]) <= 8192 and
+                           min_internal_storage <= float(phone["Internal storage (GB)"]) <= 512 and
+                           min_rear_camera <= float(phone["Rear camera"]) <= 108 and
+                           min_front_camera <= float(phone["Front camera"]) <= 32 and
+                           min_processor_cores <= float(phone["Processor"]) <= 16 and
+                           min_battery_capacity <= float(phone["Battery capacity (mAh)"]) <= 10000]
+
+        if filtered_phones:
+            print("\n")
+            print("=" * 50)
+            print("Filtered Phones:")
+            filtered_models = [phone["Name"] for phone in filtered_phones]
+            print("\n".join(filtered_models))
+            print("=" * 50)
+            print("\n")
+            selected_model = input("Enter the model name you want to show details for (or 'exit' to end): ")
+            print("=" * 50)
+            if selected_model == 'exit':
+                break  # Exit the loop if the user inputs 'exit'
+            selected_phone = next((phone for phone in filtered_phones if phone["Model"].lower() == selected_model.lower()), None)
+            if selected_phone is not None:
+                print("\n")
+                print("=" * 20)
+                print("Phone details:")
+                print("=" * 20)
+                print("\n")
+                for key, value in selected_phone.items():
+                    print(f"{key}: {value}")
+            else:
+                print("=" * 20)
+                print("Selected model not found.")
+        else:
+            print("=" * 20)
+            print("No phones match the specified criteria.")
     else:
-        print("Selected model not found.")
-else:
-    print("Phone not found.")
-
+        print("Invalid action. Please enter 'search' or 'filter'.")
